@@ -1,0 +1,138 @@
+#include<iostream>
+#include<time.h>
+#include<thread>
+#include <windows.h>    //Sleep, GetTickCount, timeGetTime, QueryPerformanceCounter
+using namespace std;
+void InitArrayInt(int n, int *arr)
+{
+	for (int i = 0; i < n; i++) {
+		arr[i] = i+1;
+	}
+}
+//平凡算法
+int SigLinkAdd(int n, int *arr) {
+	int sum = 0;
+	for (int i = 0; i < n; i++) {
+			sum += arr[i];
+	}
+	return sum;
+}
+
+//优化算法—多路链路
+int duolu_lianlu(int n,int *a)
+{
+	int sum1 = 0;
+	int sum2 = 0;
+	int sum = 0;
+	for (int i = 0; i < n; i += 2) {
+		sum1 += a[i];
+		sum2 += a[i + 1];
+		
+	}
+	sum = sum1 + sum2;
+	return sum;
+}
+//优化算法—递归
+void recursion(int n,int *b)
+{
+	if (n == 1)return;
+	else {
+		for (int i = 0; i < (n / 2); i++)
+		{
+			b[i] += b[n - i - 1];
+		}
+		n = (n + 1) / 2;
+		recursion(n, b);
+	}
+}
+//优化算法—二重循环
+void erchong_cycle(int n, int *a)
+{
+	int m;
+	for (int m = n; m > 1; ++m /= 2) //++m避免m为奇数时导致最末端一个数丢失
+	{
+		for (int i = 0; i < m / 2; i++)
+			a[i] = a[i + 2] + a[i * 2 + 1];
+		if (m % 4 == 1)a[m / 4] = a[m - 1];
+	}
+}
+
+int unroll_duolu_lianlu(int n, int *a)
+{
+	int sum1 = 0, sum2 = 0;
+	
+	for (int i = 0; i < n; i += 4) {
+		 sum1 += a[i] + a[i + 1];
+		 sum2 += a[i + 2] + a[i + 3];
+		
+	}
+	return sum1 + sum2;
+}
+
+void unroll_erchong_cycle(int n, int *a)
+{
+	for (int m = n; m > 1; ++m /= 2) {
+		for (int i = 0; i < m / 2; i++) {
+			a[i] = a[i * 2] + a[i * 2 + 1];
+			a[i + 1] = a[i * 2 + 2] + a[i * 2 + 3];
+
+		}
+	}
+}
+
+
+void unroll_recursion(int n,int*b)
+{
+	if (n == 1)return;
+	else {
+		for (int i = 0; i < (n / 2); i += 2)
+		{
+			b[i] += b[n - i - 1];
+			b[i + 1] += b[n - i - 2];
+
+		}
+		n = (n + 1) / 2;
+		unroll_recursion(n, b);
+	}	
+}
+
+int main()
+{
+	
+		
+		int n;
+		for (int n = 800; n <= 204800; n = n * 4) {
+			int *arr = new int[n];
+			InitArrayInt(n, arr);
+			//
+			int counter = 0;
+			LARGE_INTEGER litmp;
+			LONGLONG QPart1, QPart2;
+			double dfMinus, dfFreq, dfTim;
+			QueryPerformanceFrequency(&litmp);
+			dfFreq = (double)litmp.QuadPart;// 获得计数器的时钟频率
+			QueryPerformanceCounter(&litmp);
+			QPart1 = litmp.QuadPart;// 获得初始值
+
+			do
+			{
+				counter++;
+				//int sum=SigLinkAdd(n, arr);
+				//int sum=duolu_lianlu(n, arr);
+				//recursion(n, arr);
+				//erchong_cycle(n, arr);
+			int sum = unroll_duolu_lianlu(n, arr);
+				//unroll_erchong_cycle(n, arr);
+				//unroll_recursion(n,arr);
+				QueryPerformanceCounter(&litmp);
+				QPart2 = litmp.QuadPart;//获得中止值
+				dfMinus = (double)(QPart2 - QPart1);
+				dfTim = dfMinus * 1000 / dfFreq;
+				cout << dfTim << endl;// 获得对应的时间值，单位为秒
+			} while (counter < 50);//保证测试次数大于等于50次，且总时间超过10ms
+			cout << counter << endl;
+			cout << dfTim / counter << endl;
+			cout << endl;
+		}
+	return 0;
+}
