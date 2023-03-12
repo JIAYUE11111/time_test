@@ -1,0 +1,132 @@
+#include<iostream>
+#include<stdlib.h>
+#include<stdio.h>
+#include<time.h>
+#include<sys/time.h>
+#include<unistd.h>
+using namespace std;
+void InitArrayInt(int n, int *arr)
+{
+	for (int i = 0; i < n; i++) {
+		arr[i] = i+1;
+	}
+}
+//平凡算法
+int SigLinkAdd(int n, int *arr) {
+	int sum = 0;
+	for (int i = 0; i < n; i++) {
+			sum += arr[i];
+	}
+	return sum;
+}
+
+//优化算法—多路链路
+int duolu_lianlu(int n,int *a)
+{
+	int sum1 = 0;
+	int sum2 = 0;
+	int sum = 0;
+	for (int i = 0; i < n; i += 2) {
+		sum1 += a[i];
+		sum2 += a[i + 1];
+		
+	}
+	sum = sum1 + sum2;
+	return sum;
+}
+//优化算法—递归
+void recursion(int n,int *b)
+{
+	if (n == 1)return;
+	else {
+		for (int i = 0; i < (n / 2); i++)
+		{
+			b[i] += b[n - i - 1];
+		}
+		n = (n + 1) / 2;
+		recursion(n, b);
+	}
+}
+//优化算法—二重循环
+void erchong_cycle(int n, int *a)
+{
+	int m;
+	for (int m = n; m > 1; ++m /= 2) //++m避免m为奇数时导致最末端一个数丢失
+	{
+		for (int i = 0; i < m / 2; i++)
+			a[i] = a[i + 2] + a[i * 2 + 1];
+		if (m % 4 == 1)a[m / 4] = a[m - 1];
+	}
+}
+
+int unroll_duolu_lianlu(int n, int *a)
+{
+	int sum1 = 0, sum2 = 0;
+	
+	for (int i = 0; i < n; i += 4) {
+		 sum1 += a[i] + a[i + 1];
+		 sum2 += a[i + 2] + a[i + 3];
+		
+	}
+	return sum1 + sum2;
+}
+
+void unroll_erchong_cycle(int n, int *a)
+{
+	for (int m = n; m > 1; ++m /= 2) {
+		for (int i = 0; i < m / 2; i++) {
+			a[i] = a[i * 2] + a[i * 2 + 1];
+			a[i + 1] = a[i * 2 + 2] + a[i * 2 + 3];
+
+		}
+	}
+}
+
+
+void unroll_recursion(int n,int*b)
+{
+	if (n == 1)return;
+	else {
+		for (int i = 0; i < (n / 2); i += 2)
+		{
+			b[i] += b[n - i - 1];
+			b[i + 1] += b[n - i - 2];
+
+		}
+		n = (n + 1) / 2;
+		unroll_recursion(n, b);
+	}	
+}
+
+int main()
+{
+	
+		
+		int n;
+		for (int n = 800; n <= 204800; n = n * 4) {
+			int *arr = new int[n];
+			float time_use=0;
+			InitArrayInt(n, arr);
+			//
+			int counter = 0;
+			struct timeval start, end;
+			gettimeofday(&start, NULL);
+
+			do
+			{
+				counter++;
+				//int sum=SigLinkAdd(n, arr);
+				//int sum=duolu_lianlu(n, arr);
+				//recursion(n, arr);
+				//erchong_cycle(n, arr);
+			//int sum = unroll_duolu_lianlu(n, arr);
+				//unroll_erchong_cycle(n, arr);
+				unroll_recursion(n,arr);
+				gettimeofday(&end, NULL);
+				float time_use = (double)(end.tv_sec - start.tv_sec) * 1000 + ((double)(end.tv_usec - start.tv_usec) / 1000.0);
+		cout << time_use << endl;
+	} while (counter < 50);
+	cout << counter << endl;
+	}
+	return 0;
+}
