@@ -1,0 +1,75 @@
+#include<iostream>
+#include<time.h>
+#include<thread>
+#include <windows.h>    //Sleep, GetTickCount, timeGetTime, QueryPerformanceCounter
+using namespace std;
+void initmatrixint(int n, double *sum, double *a, double **b)
+{
+	int i = 0;
+	for (int i = 0; i < n; i++)
+	{
+		sum[i] = 0;
+		a[i] = i++;//根据下标确定其值
+	}
+	for (int i = 0; i < n; i++)
+	{
+		for (int j = 0; j < n; j++)
+		{
+			b[i][j] = 1.2*i + 1.2*j;
+		}
+	}
+}
+int main()
+{
+	int n;
+	cin >> n;
+	double *sum = new double[n];
+	double *a = new double[n];
+	double**b = new double*[n];
+	for (int i = 0; i < n; i++)
+	{
+		b[i] = new double[n];
+	}
+	initmatrixint(n, sum, a, b);
+	//放一个存储40组数据结果的数组
+	double  outcome[40];
+	//
+	int counter = 0;
+	LARGE_INTEGER litmp;
+	LONGLONG QPart1, QPart2;
+	double dfMinus, dfFreq, dfTim;
+	QueryPerformanceFrequency(&litmp);
+	dfFreq = (double)litmp.QuadPart;// 获得计数器的时钟频率
+	QueryPerformanceCounter(&litmp);
+	QPart1 = litmp.QuadPart;// 获得初始值
+
+	do
+	{
+		counter++;
+		//平凡算法
+		for (int i = 0; i < n; i++)
+		{
+			sum[i] = 0;
+			for (int j = 0; j < n; j++)
+				sum[i] += b[j][i] * a[j];
+		}
+		//优化算法
+		/*for(int i=0;i<n;i++)
+		sum[i]=0;
+		for (int j = 0; j < n; j++)
+		{
+			for (int i = 0; i < n; i++)
+			{
+				sum[i] += b[j][i] * a[j];
+			}
+		}*/
+		QueryPerformanceCounter(&litmp);
+		QPart2 = litmp.QuadPart;//获得中止值
+		dfMinus = (double)(QPart2 - QPart1);
+		dfTim = dfMinus*1000 / dfFreq;
+		cout << dfTim << endl;// 获得对应的时间值，单位为秒
+	} while (dfTim < 10||counter<50);//保证测试次数大于等于50次，且总时间超过10ms
+	cout << counter << endl;
+	cout << dfTim / counter << endl;
+	return 0;
+}
